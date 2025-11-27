@@ -1,0 +1,4 @@
+// auth.js removed by request on 2025-11-20 — file archived
+// Original content:
+// // This file intentionally left blank — the demo uses HTML/CSS only.
+// (archived)

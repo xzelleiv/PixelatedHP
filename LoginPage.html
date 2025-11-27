@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pixelated Garden /DEMO VER FOR COMPROG2, BY PASAO SKIDDING FROM OWN SOURCE/</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="login.css" />
+
+</head>
+<body>
+
+  <!-- bg particle system -->
+  <canvas id="bg-canvas" style="position:fixed; inset:0; z-index:0;"></canvas>
+
+  <div id="app">
+    <!-- header -->
+    <header>
+      <a href="https://pixelatedgarden.me" target="_blank" class="logo pixel">Pixel Garden</a>
+      <nav>
+        <a onclick="route('home'); playSfx('click')">Home</a>
+        <a onclick="route('login'); playSfx('click')">Login</a>
+        <a onclick="openModal('settings'); playSfx('click')">Settings</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- HOME -->
+      <div id="view-home" class="view-home">
+        <!-- glitch -->
+        <h1 class="pixel glitch" data-text="Pixel Garden">Pixel Garden</h1>
+        <div class="version-tag">v 2.2.1 (submission purposes)</div>
+        <!-- taken from own source -->
+        <div class="home-menu">
+          <button class="btn primary" onclick="route('login'); playSfx('confirm')">Start Game</button>
+          <button class="btn" onclick="openModal('demo'); playSfx('click')">Demo</button>
+          <button class="btn" onclick="openModal('docs'); playSfx('click')">Documentary</button>
+        </div>
+       <!-- redirect sa main site -->
+        <div style="margin-top: 40px;">
+          <a href="https://pixelatedgarden.me" target="_blank" style="color:var(--muted); font-size:10px; text-decoration:none;">pixelatedgarden.me</a>
+        </div>
+      </div>
+
+      <!-- login -->
+      <div id="view-login" class="glass-panel view-login hidden">
+        <h2 class="pixel">Login</h2>
+        <form onsubmit="handleLogin(event)">
+          <div class="field">
+            <span class="label">Username</span>
+            <input id="login-user" type="text" placeholder="Name.." required>
+          </div>
+          <div class="field">
+            <span class="label">Password</span>
+            <div class="input-wrap">
+              <input id="login-pass" type="password" placeholder="••••••••" required>
+              <span class="eye-toggle" onclick="togglePass(); playSfx('click')">X</span>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px;">
+            <span onclick="openModal('signup'); playSfx('click')" style="font-size:12px; color:var(--muted); cursor:pointer; text-decoration:underline;">No account?</span>
+            <button class="btn primary" onclick="playSfx('confirm')">Enter</button>
+          </div>
+        </form>
+        
+        <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--muted);">
+          draft login page built for pixelatedgarden.me
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <button class="btn" style="padding: 8px 12px; font-size: 8px;" onclick="route('home'); playSfx('click')">Back</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- TOASTS -->
+  <div id="toast-area" class="toast-container"></div>
+
+  <!-- MODALS (inspired by FCC) -->
+
+  <!-- Settings -->
+  <div id="modal-settings" class="overlay" onclick="closeModalOnBg(event, 'settings')">
+    <div class="glass-panel modal">
+      <div class="modal-header">
+        <h3 class="pixel">System Settings</h3>
+        <button class="btn" style="padding:5px 10px;" onclick="closeModal('settings'); playSfx('click')">X</button>
+      </div>
+      
+      <div class="field">
+        <span class="label">Volume</span>
+        <input type="range" style="width:100%; accent-color: var(--accent);" oninput="playSfx('click')">
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <span class="label">Save to Local Storage</span>
+        <input type="checkbox" checked style="width:auto;" onclick="playSfx('click')">
+      </div>
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <span class="label">Save to Cache</span>
+        <input type="checkbox" style="width:auto;" onclick="playSfx('click')">
+      </div>
+
+      <div style="text-align:right; margin-top:20px;">
+        <button class="btn primary" onclick="closeModal('settings'); showToast('Settings saved!'); playSfx('confirm')">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo -->
+  <div id="modal-demo" class="overlay" onclick="closeModalOnBg(event, 'demo')">
+    <div class="glass-panel modal">
+      <div class="modal-header">
+        <h3 class="pixel">Pixelated Garden Demo</h3>
+      </div>
+
+      <div class="demo-grid">
+        <div class="stat-box">
+          <div class="stat-label pixel">SEEDS</div>
+          <div id="d-seeds" class="stat-val pixel">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label pixel">TREES</div>
+          <div id="d-trees" class="stat-val pixel">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label pixel">LEVEL</div>
+          <div id="d-level" class="stat-val pixel">1</div>
+        </div>
+      </div>
+
+      <div class="flex-center" style="gap:15px; margin-bottom:20px;">
+        <button class="btn primary" onclick="demoAction(event, 'gather')">Gather (+1)</button>
+        <button class="btn" onclick="demoAction(event, 'plant')">Plant (10)</button>
+        <button class="btn" onclick="demoAction(event, 'upgrade')">Upgrade (25)</button>
+      </div>
+      
+      <p style="text-align:center; font-size:12px; color:var(--muted);">
+        Plant, Gather, Upgrade <!-- basically the whole incremental system of pixelatedgarden.me :p -->
+      </p>
+
+      <div style="text-align:right; margin-top:20px;">
+        <button class="btn" onclick="resetDemo(); playSfx('error')">Reset</button>
+        <button class="btn" onclick="closeModal('demo'); playSfx('click')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Docs -->
+  <div id="modal-docs" class="overlay" onclick="closeModalOnBg(event, 'docs')">
+    <div class="glass-panel modal">
+      <div class="modal-header">
+        <h3 class="pixel">Field Guide</h3>
+        <button class="btn" style="padding:5px 10px;" onclick="closeModal('docs'); playSfx('click')">X</button>
+      </div>
+      
+      <div style="color:var(--text); font-size:13px; line-height:1.6;">
+        <p style="color:var(--muted);">Draft Docs - Pasao</p>
+        
+        <h4 style="color:var(--accent); margin-bottom:5px;">Gameplay</h4>
+        <ul style="padding-left:20px; margin-top:0;">
+          <li>Plant trees -> get seeds -> buy upgrades.</li>
+          <li>Gather manually</li>
+          <li>Shovel withered trees.</li>
+        </ul>
+
+        <h4 style="color:var(--accent); margin-bottom:5px;">Seasons</h4>
+        <ul style="padding-left:20px; margin-top:0;">
+          <li>Seasons rotate (Spring, Winter, Galaxy, Fiery).</li>
+        </ul>
+
+        <h4 style="color:var(--accent); margin-bottom:5px;">Legendaries</h4>
+        <ul style="padding-left:20px; margin-top:0;">
+          <li>Mythic trees which stays in legendary slots.</li>
+        </ul>
+      </div>
+
+      <div style="text-align:right; margin-top:20px;">
+        <button class="btn" onclick="closeModal('docs'); playSfx('click')">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup -->
+  <div id="modal-signup" class="overlay" onclick="closeModalOnBg(event, 'signup')">
+    <div class="glass-panel modal" style="width:350px;"> <!-- eme emeng glassmorphic -->
+      <div class="modal-header">
+        <h3 class="pixel">New Account</h3>
+      </div>
+      
+      <div class="field">
+        <span class="label">Username</span>
+        <input type="text" placeholder="Pick a name">
+      </div>
+      <div class="field">
+        <span class="label">Password</span>
+        <input type="password" placeholder="Create password">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn" onclick="closeModal('signup'); playSfx('click')">Cancel</button>
+        <button class="btn primary" onclick="closeModal('signup'); showToast('Account created! Login now.'); playSfx('confirm')">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <script> // added here para kunware walang javascript used eyy ahaha
+    // audio stuff for the beeps (stackoverflow)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSfx(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      // different sounds for different actions credits to stackoverflow
+      if (type === 'click') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+      } else if (type === 'confirm') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+      } else if (type === 'coin') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1800, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+      }
+    }
+
+    // routing
+    function route(viewName) {
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-login').classList.add('hidden');
+      
+      document.getElementById('view-' + viewName).classList.remove('hidden');
+    }
+
+    // login logic
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('login-user').value;
+      if (!user) {
+        playSfx('error');
+        return showToast('Please enter a username!', 'error');
+      }
+      
+      playSfx('confirm');
+      showToast(`Welcome back, ${user}.`);
+      setTimeout(() => {
+        showToast('Redirecting to Pixelated Garden...');
+        window.location.href = 'https://pixelatedgarden.me'; // lowkey advertisement haha
+      }, 500);
+    }
+
+    function togglePass() {
+      const input = document.getElementById('login-pass');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // modal stuff
+    function openModal(name) {
+      document.getElementById('modal-' + name).classList.add('active');
+    }
+
+    function closeModal(name) {
+      document.getElementById('modal-' + name).classList.remove('active');
+    }
+
+    function closeModalOnBg(e, name) {
+      if (e.target.id === 'modal-' + name) {
+        closeModal(name);
+      }
+    }
+
+    // toast system
+    function showToast(msg, type = 'normal') {
+      const container = document.getElementById('toast-area');
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = `<span>${type === 'error' ? '⚠️' : ''}</span> ${msg}`;
+      
+      if(type === 'error') el.style.borderLeftColor = 'var(--danger)';
+      
+      container.appendChild(el);
+      
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+
+    // demo logic (no saving)
+    let demoState = { seeds: 0, trees: 0, level: 1 };
+    
+    function updateDemoUI() {
+      document.getElementById('d-seeds').innerText = demoState.seeds;
+      document.getElementById('d-trees').innerText = demoState.trees;
+      document.getElementById('d-level').innerText = demoState.level;
+    }
+
+    function demoAction(e, type) {
+      // floaty text setup
+      const floater = document.createElement('div');
+      floater.className = 'floater pixel';
+      floater.style.left = e.clientX + 'px';
+      floater.style.top = (e.clientY - 30) + 'px';
+      document.body.appendChild(floater);
+
+      if (type === 'gather') {
+        playSfx('coin');
+        const gain = demoState.level;
+        demoState.seeds += gain;
+        floater.innerText = `+${gain}`;
+        floater.style.color = 'var(--success)';
+      } 
+      else if (type === 'plant') {
+        if (demoState.seeds >= 10) {
+          playSfx('confirm');
+          demoState.seeds -= 10;
+          demoState.trees++;
+          floater.innerText = '-10';
+          floater.style.color = 'var(--danger)';
+        } else {
+          playSfx('error');
+          floater.innerText = 'Need 10';
+          floater.style.color = 'var(--muted)';
+        }
+      } 
+      else if (type === 'upgrade') {
+        if (demoState.seeds >= 25) {
+          playSfx('confirm');
+          demoState.seeds -= 25;
+          demoState.level++;
+          floater.innerText = 'UPGRADED!';
+          floater.style.color = 'var(--accent)';
+        } else {
+          playSfx('error');
+          floater.innerText = 'Need 25';
+          floater.style.color = 'var(--muted)';
+        }
+      }
+
+      updateDemoUI();
+      // clean up floater
+      setTimeout(() => floater.remove(), 800);
+    }
+
+    function resetDemo() {
+      demoState = { seeds: 0, trees: 0, level: 1 };
+      updateDemoUI();
+      showToast('Demo reset.');
+    }
+
+    // bg particles
+    (function initParticles() {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      let particles = [];
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      
+      function createParticles() {
+        particles = [];
+        const count = Math.floor(w * h / 25000);
+        for(let i=0; i<count; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            s: Math.random() * 2 + 1,
+            speedX: (Math.random() - 0.5) * 0.5,
+            speedY: (Math.random() - 0.5) * 0.5,
+            c: Math.random() > 0.5 ? 'rgba(200, 147, 59, 0.3)' : 'rgba(155, 127, 106, 0.2)'
+          });
+        }
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, w, h);
+        
+        particles.forEach(p => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h;
+          if (p.y > h) p.y = 0;
+
+          ctx.fillStyle = p.c;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', () => { resize(); createParticles(); });
+      resize();
+      createParticles();
+      loop();
+    })();
+  </script>
+</body>
+</html>
